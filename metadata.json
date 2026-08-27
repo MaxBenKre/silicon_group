@@ -1,31 +1,40 @@
 {
-  "team_id": "example",
-  "team_name": "Example Team (replace me)",
-  "contact": "name@institution.edu",
+  "team_id": "team_6",
+  "team_name": "team_6",
+  "contact": "maximilian.kreutner@uni-mannheim.de",
   "creators": [
     {
-      "name": "Lastname, Firstname",
-      "affiliation": "Your institution",
-      "orcid": ""
+      "name": "Kreutner, Maximilian",
+      "affiliation": "University Mannheim",
+      "orcid": "0009-0002-0479-8868"
+    },
+    {
+      "name": "Strohmaier, Markus",
+      "affiliation": "University Mannheim",
+      "orcid": "0000-0002-5485-5720"
     }
   ],
-  "abstract": "",
+  "abstract": "We present a Tier-2 direct group-forecasting approach for predicting outcomes under 16 climate communication interventions and a control condition. Using QSTN and Qwen/Qwen3.6-27B, we ask the model to predict mean answers for a representative sample of 5,000 people at each level of six demographic moderators. Each prompt contains one demographic attribute and level, one intervention text, and the full scored questionnaire. Item predictions are parsed, validated, converted into the benchmark's 13 outcomes, completed through a deterministic fallback hierarchy where necessary, and aggregated into the required overall and moderator-level cell files.",
   "license": "CC-BY-4.0",
-  "tier": 1,
-  "entry": "primary",
-  "approach_family": "per-respondent simulation, single model",
+  "tier": 2,
+  "entry": "secondary-3",
+  "approach_family": "direct group forecasting, single model",
   "models": [
-    "gpt-4o-mini-2024-07-18"
+    "Qwen/Qwen3.6-27B"
   ],
-  "code_repository": "https://github.com/your-team/your-repo",
+  "code_repository": "https://github.com/dess-mannheim/silicon_sampling_benchmark",
   "code_doi": null,
   "disclosure_class": "A",
   "escrow_doi": null,
   "zenodo_doi": null,
   "prediction_files": [
     {
-      "file": "predictions/example_T1_primary_v1.csv",
-      "sha256": "0f24e117fcf6803743a12ab43f42bf8b0a7893fb9a706e5303cae3eadb79cc59"
+      "file": "predictions/team_6_T2_secondary-3_v1_cells_main.csv",
+      "sha256": "97463cf7641b0d405d7d924c7f908d8f39efcae564f508e8197e6936c2fb9a43"
+    },
+    {
+      "file": "predictions/team_6_T2_secondary-3_v1_cells_moderator.csv",
+      "sha256": "53091b029806e1a7321f65326db6606db9179f324744d1da0703a670ebf34e32"
     }
   ],
   "coverage": {

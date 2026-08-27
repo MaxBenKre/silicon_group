@@ -1,87 +1,68 @@
 # Silicon Sample Benchmark — method registration form
 
-Fill in every item before the prediction lock; this file ships inside your repo's Zenodo release
-(see the README's *Deposit* step). This form covers **one entry** (one repo / one Zenodo release,
-`primary` or `secondary-k` — see the README's *What counts as a submission*); if you submit several
-entries, fill one form per entry. Items marked **★**
-must be disclosed **fully publicly** (never escrowed or withheld). Items marked **†** must be at
-minimum escrowed — they may be sealed from the public, but never withheld from the core team. Items
-not applicable to your approach: write `N/A`. When several models serve different pipeline stages, complete the model
-sections (B) once per model. See the call's *Disclosure policy* for escrow rules.
-
----
 
 ## 0 · Approach identity and output
-- **0.1 Team ★** — name, the one or two members (teams are at most two, unless a larger team was approved on request), affiliations, corresponding contact:
-- **0.2 Plain-language summary ★** — one paragraph, what the approach does (not how):
-- **0.3 Submission tier & approach family ★** — tier (1/2/3); family (e.g. per-respondent simulation / agent / direct forecast; single model / ensemble / multi-agent; zero-shot / literature-conditioned):
-- **0.4 Pipeline diagram** — ordered steps from raw inputs to submitted file:
-- **0.5 Coverage ★** — number of respondents/cells/estimates; mapping to conditions. Full coverage is required: every submission predicts **all 16 interventions and all 13 outcomes** (partial coverage is not accepted). Confirm here:
+- **0.1 Team ★** — team_6; Maximilian Kreutner, Markus Strohmaier; University Mannheim; corresponding contact: maximilian.kreutner@uni-mannheim.de
+- **0.2 Plain-language summary ★** — We ask one LLM to directly forecast mean survey answers for groups defined by a single demographic attribute and level. For every intervention and control condition, the model sees the exact stimulus, the full scored questionnaire, and one of 27 age, education, gender, income, party, or race categories. Its item-level mean forecasts are converted to the benchmark outcomes, completed deterministically where responses are missing, and aggregated into overall and moderator-level Tier 2 predictions.
+- **0.3 Submission tier & approach family ★** — Tier 2; direct group forecasting, single model, zero-shot.
+- **0.4 Pipeline diagram** — Verbatim condition text + one demographic level + full questionnaire → QSTN battery prompt → Qwen direct mean forecasts → JSON parsing and repair → item-to-outcome construction → deterministic missing-cell fallback → moderator grid → equal-weight overall cell aggregation → Tier 2 CSVs.
+- **0.5 Coverage ★** — Full coverage: 221 main cells (17 conditions × 13 outcomes) and 5,967 moderator cells (17 conditions × 27 levels across six moderators × 13 outcomes), covering control and all 16 interventions.
 
 ## A · Scope of LLM use
-- **A.1 Purpose** — every workflow stage where LLMs are used:
-- **A.2 Degree of automation ★** — confirm fully automated, no human in the loop at prediction time; note any exception:
+- **A.1 Purpose** — Qwen is used to directly forecast the item-level mean answers of a representative sample for every condition and demographic-level cell. All later parsing, outcome construction, completion, and aggregation steps are deterministic code.
+- **A.2 Degree of automation ★** — Fully automated at prediction time; no human is involved in generation, parsing, repair, fallback completion, or aggregation.
 
 ## B · Model / system details (once per model)
-- **B.1 Model name(s)** — exact identifiers incl. provider, size, version/timestamp, source link:
-- **B.2 Access & context mode** — API/web/local; API name + version; chat vs stateless; exact call dates:
-- **B.3 Configuration** — temperature, top-p/top-k, max tokens, penalties, stop sequences, seeds, reasoning effort, completions per item:
-- **B.4 Customization** — fine-tuning, RAG, prompt optimization, tool use, web search, agentic scaffolds (cross-ref H):
-- **B.5 Persistent memory** — across interactions? what persisted:
-- **B.6 Inference stack** — for local models: serving framework + version, quantization, hardware:
-- **B.7 Ensembles** — members + exact aggregation rule:
+- **B.1 Model name(s)** — Qwen/Qwen3.6-27B (Qwen, 27B), run locally; source: https://huggingface.co/Qwen/Qwen3.6-27B. The checkpoint used by production run 6501 was loaded with revision=None on 2026-07-23; the model was publicly released on 2026-04-22.
+- **B.2 Access & context mode** — Local vLLM inference with stateless chat-style prompts. Production run 6501 ran on 2026-07-23 from 12:00:09 to 12:30:44 UTC.
+- **B.3 Configuration** — QSTN passes vLLM SamplingParams with temperature=1.0, min_p=0.0, presence_penalty=0.0, frequency_penalty=0.0, repetition_penalty=1.0, no user-supplied stop strings, ignore_eos=false, and min_tokens=0. The model generation configuration supplies top_p=0.95 and top_k=20. bfloat16; tensor parallel size 2; GPU-memory utilization 0.95; maximum concurrent sequences 100; eager execution; custom all-reduce disabled; thinking enabled with <think>/</think> boundaries; maximum model length and maximum generation tokens 10,000. vLLM engine seed 0; QSTN default base seed 42 generates one deterministic request seed per prompt. One completion is requested for each of 459 prompts.
+- **B.4 Customization** — N/A: no fine-tuning, RAG, prompt optimization against benchmark outcomes, tool use, web search, or agentic scaffolding.
+- **B.5 Persistent memory** — N/A; prompts are stateless and no information persists across demographic-condition cells.
+- **B.6 Inference stack** — vLLM 0.25.1, local two-GPU tensor-parallel inference, bfloat16, no quantization, Triton attention and kernels. Hardware: two NVIDIA H100 PCIe GPUs; Driver 580.126.20; CUDA 13.0.
+- **B.7 Ensembles** — N/A; the submitted predictions use only Qwen/Qwen3.6-27B.
 
 ## C · Prompts
-- **C.1 Exact prompts** — verbatim text or link to deposited file; were they iteratively refined? pre-specified vs in response to outputs:
-- **C.2 System-wide instructions**:
-- **C.3 Prompt-design rationale** — brief rationale for the prompt design: why prompts were structured as they were, and the reasoning behind major design choices (recommended, not required):
+- **C.1 Exact prompts** — The source code repository contains the system and user templates in src/group_level/qstn_setup.py, the complete rendered example in prompt/group.txt, and the questionnaire in qstn_data/questionnaire.csv. Complete rendered prompts and responses will be included in the separate raw-output Zenodo deposit. The final prompt structure was fixed before production run 6501.
+- **C.2 System-wide instructions** — The system message tells the model that it will receive one demographic and a set of questions, asks it to predict the mean answer for every question, and requires a JSON-only response containing every question ID.
+- **C.3 Prompt-design rationale** — We use one battery prompt per cell so the model sees the same stimulus and questionnaire context together. Asking for the mean of a representative sample of 5,000 people makes the target explicitly group-level. Each prompt contains only one moderator and level to obtain the complete subgroup grid without inventing joint demographic profiles.
 
 ## D · Persona / profile construction (Tiers 1–2)
-- **D.1 Profile source** — source of demographic profiles you constructed: a public survey (e.g. GSS / ANES / Census), other survey, fully synthetic, or none. The benchmark ships no participant pool; report how you built yours, incl. condition assignments:
-- **D.2 Profile verbalization** — which variables, rendered how (template vs generated narrative; if generated: model + prompt):
-- **D.3 Assignment & weighting** — number of personas, assignment to conditions (your responsibility, all 17 conditions), reuse, weighting/matching:
+- **D.1 Profile source** — No individual personas are constructed. The approach uses all 27 published levels of the six benchmark moderators: age band (4), education (6), gender (3), income (5), party (4), and race (5).
+- **D.2 Profile verbalization** — Each prompt states one moderator name and one level in a fixed template, for example age_band: 18-29. No generated narrative is used.
+- **D.3 Assignment & weighting** — Every one of the 27 moderator levels is crossed with every control/intervention condition, yielding 459 prompts. No profiles are reused because the units are direct group forecasts. The submitted moderator file retains every level; the main file is the unweighted arithmetic mean across the 27 moderator-level forecasts for each condition and outcome.
 
 ## E · Stimulus and survey administration
-- **E.1 Stimulus presentation** — verbatim vs paraphrase; how state-contingent content is handled:
-- **E.2 Survey walk-through** — one item/call vs blocks vs whole survey; context carry-over; item/option ordering & randomization; scale display; attention/comprehension handling:
-- **E.3 Response elicitation** — free text / constrained choice / structured output / token log-probabilities (if logprobs: normalization & mapping):
+- **E.1 Stimulus presentation** — QSTN inserts each condition text verbatim from qstn_data/conditions.json. The one text associated with the target condition is shown in each prompt.
+- **E.2 Survey walk-through** — One full 44-item scored battery is administered in one completion per condition-demographic cell. The prompt preserves the questionnaire item and option order and displays the native scale anchors. There is no context carry-over, item randomization, or added attention/comprehension item.
+- **E.3 Response elicitation** — Free-generation JSON object with one numeric group-mean prediction per item. Token log-probabilities and constrained decoding are not used.
 
 ## F · Stochasticity and aggregation
-- **F.1 Runs & seeds** — runs per respondent/item/estimate; seeds; reproducibility under identical settings:
-- **F.2 Aggregation rule** — how multiple generations become submitted values (mean/median/mode/first/sampled/…):
+- **F.1 Runs & seeds** — Exactly one completion per condition-demographic cell, for 459 completions total. vLLM uses engine seed 0 and QSTN default base seed 42 generates a distinct deterministic request seed for each prompt. No repeated generations are averaged.
+- **F.2 Aggregation rule** — Parsed item means are converted to the 13 benchmark outcomes: six composites are arithmetic means of their required components, funding_perceptions is reverse-coded as 100 minus the model response, and the remaining outcomes use their direct item values. Newsletter forecasts produced on the legacy 1=Yes, 2=No mean scale are converted to a signup proportion as 2 − x; the single response expressed directly as 35 percent is converted to 0.35. Duplicate cell values, if present, are averaged. The moderator file contains the completed condition × moderator level × outcome grid. The main mean for each condition and outcome is the unweighted arithmetic mean of its 27 moderator-level values.
 
 ## G · Validation & post-processing
-- **G.1 Human validation** — any human review of outputs (often N/A):
-- **G.2 Post-processing** — parsing rules; handling of refusals/malformed/missing/out-of-range; exclusions; for approaches that generate individual responses, the resulting effective N per condition (descriptive disclosure, not a scoring input):
-- **G.3 Calibration corrections** — any post-hoc scaling/shifting/debiasing and exactly what data it was fit on (cross-ref H/I):
+- **G.1 Human validation** — N/A.
+- **G.2 Post-processing** — Direct JSON parsing is attempted first, followed by JSON repair. Of 459 responses, five required repair and two remained unparseable, leaving 457 parsed response objects. Numeric strings are accepted by extracting their first numeric value, and a composite is emitted only when all its component predictions are present. Under the generation-time parser this yielded 5,928 observed moderator cells; 39 of 5,967 cells were completed deterministically using, in order: the mean for the same condition/outcome/moderator, the same condition/outcome, the same outcome/moderator level across conditions, the same outcome overall, then the native-scale midpoint. To harmonize the newsletter output with the required 0–1 proportion, values on the prompted legacy 1=Yes, 2=No mean scale were recoded as 2 − x, the single percentage-form value 35 was divided by 100, and values already in [0,1] were retained. The 17 main newsletter means were then recomputed from the corrected moderator cells. No generated prompt-cell record was manually excluded.
+- **G.3 Calibration corrections** — No empirical or outcome-fitted calibration is applied. The newsletter conversion described in G.2 is deterministic scale harmonization only.
 
 ## H · Learning and conditioning components
-- **H.1 Fine-tuning data** — exact corpus (hashes/DOIs), hyperparameters, checkpoints:
-- **H.2 Context & retrieval corpora** — exact document set in context / indexed, archived in the deposit:
+- **H.1 Fine-tuning data** — N/A.
+- **H.2 Context & retrieval corpora** — N/A.
 
 ## I · Data inputs, blinding, and competing interests
-- **I.1 Competing interests ★** — funding, in-kind compute/model access, relationships with LLM-interested entities:
-- **I.2 External human data †** — all external human datasets that informed the approach anywhere (training/fine-tuning/retrieval/ICL/calibration):
-- **I.3 Blinding attestation ★** — **mandatory.** Signed attestation that no team member accessed, solicited, or was shown any human outcome data from this study, including pilots, before the prediction lock:
-- **I.4 Contamination note †** — training cutoff of every model vs public release dates of this project's materials; note any known exposure:
+- **I.1 Competing interests ★** — N/A.
+- **I.2 External human data †** — N/A; no external human dataset is used for fine-tuning, retrieval, in-context examples, calibration, or post-processing.
+- **I.3 Blinding attestation ★** — The signed attestation is available in declaration.pdf in the source code repository. No team member accessed, solicited, or was shown human outcome data from this study, including pilots, before the prediction lock.
+- **I.4 Contamination note †** — There is no known exposure or contamination. Qwen does not publish a precise training-data cutoff for this checkpoint. Qwen/Qwen3.6-27B was publicly released on 2026-04-22, while the benchmark condition, questionnaire, and survey materials were first released on 2026-07-21; the released checkpoint therefore predates the public benchmark materials.
 
 ## J · Internal selection procedure
-- **J.1 Design-space search †** — how the final pipeline was chosen: how many configurations tried, internal validation criterion, what data it ran against:
+- **J.1 Design-space search †** — Multiple local single-model direct-forecast runs were produced during development. Qwen/Qwen3.6-27B was selected as the latest dense Qwen production run for this Tier 2 entry. Human benchmark outcomes were unavailable, so no pipeline or model was selected against benchmark performance.
 
 ## K · Reproducibility & frozen artifacts
-- **K.1 Code & materials** — link/DOI, secrets removed, determinism/seeds documented (also record the link in `metadata.json` → `code_repository` / `code_doi`):
-- **K.2 Raw output logs †** — complete unprocessed model responses archived, hashed, time-stamped (required for Tiers 1–2, public or escrowed; Tier 3 where intermediate generations exist; oversized logs may be a separate linked Zenodo upload):
-- **K.3 Computational resources** — API-call counts, total tokens, cost, compute time:
+- **K.1 Code & materials** — https://github.com/dess-mannheim/silicon_sampling_benchmark; relevant files include the group prompt builder, questionnaire and condition inputs, launcher, JSON parser, outcome construction, fallback completion code, and the source 27B prediction files. This deposit contains predictions/team_6_T2_secondary-3_v1_cells_main.csv and predictions/team_6_T2_secondary-3_v1_cells_moderator.csv. DOI: [TBD before submission].
+- **K.2 Raw output logs †** — The complete unprocessed Qwen/Qwen3.6-27B run-6501 record and its SHA-256 checksum are uploaded to https://zenodo.org/records/22124448 with DOI: 10.5281/zenodo.22124447.
+- **K.3 Computational resources** — 459 local model completions and no API calls or API cost. Run 6501 used two NVIDIA H100 PCIe GPUs. The battery completed in 27 m 54 s; end-to-end time from launch through writing all artifacts was 30 m 35 s on 2026-07-23. The logs retain aggregate throughput but not exact total token counts.
 
 ## L · Disclosure class
-Each item above is deposited as **public**, **escrowed** (sealed from the public but available to the
-core team and auditors under confidentiality, with a public SHA-256 hash + timestamp so the lock is
-still verifiable — an embargo with a sunset date is encouraged), or **withheld** (permitted only for
-items marked neither ★ nor †). Your entry's class is set by its **most restricted item** and recorded
-in `metadata.json` → `disclosure_class` (and `escrow_doi` if anything is escrowed):
-- **A · Open** — all items public. Full results-table standing; all features enter the design-choice analysis.
-- **B · Escrowed** — some items sealed but every item is available to the core team/auditors under confidentiality. Full standing with an *escrowed* badge; only publicly disclosed features enter the design-choice analysis.
-- **C · Sealed** — one or more permitted items withheld even from escrow. Scored and reported with a *not independently verifiable* flag; excluded from the approach catalogue and design-choice analysis.
 
-★ items must always be public (never escrowed or withheld); † items must be at minimum escrowed. Full
-policy: <https://janpfander.github.io/llm_predictions_megastudy/#disclosure>
+- **A · Open** — all items public. External resources are all publicly available.

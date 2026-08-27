@@ -1,0 +1,52 @@
+{
+  "upload_type": "software",
+  "title": "Silicon Sample Benchmark — Tier 2 (group-level reasoning) submission (team team_6)",
+  "version": "1.0-t2",
+  "language": "eng",
+  "access_right": "open",
+  "license": "CC-BY-4.0",
+  "creators": [
+    {
+      "name": "Kreutner, Maximilian",
+      "affiliation": "University Mannheim",
+      "orcid": "0009-0002-0479-8868"
+    },
+    {
+      "name": "Strohmaier, Markus",
+      "affiliation": "University Mannheim",
+      "orcid": "0000-0002-5485-5720"
+    }
+  ],
+  "description": "<p>We present a Tier-2 direct group-forecasting approach for predicting outcomes under 16 climate communication interventions and a control condition. Using QSTN and Qwen/Qwen3.6-27B, we ask the model to predict mean answers for a representative sample of 5,000 people at each level of six demographic moderators. Each prompt contains one demographic attribute and level, one intervention text, and the full scored questionnaire. Item predictions are parsed, validated, converted into the benchmark's 13 outcomes, completed through a deterministic fallback hierarchy where necessary, and aggregated into the required overall and moderator-level cell files.<\/p>",
+  "keywords": [
+    "Silicon Sample Benchmark",
+    "silicon sampling",
+    "large language models",
+    "computational social science",
+    "survey methodology",
+    "public opinion",
+    "climate communication",
+    "treatment effect prediction"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://janpfander.github.io/llm_predictions_megastudy/",
+      "relation": "isPartOf",
+      "scheme": "url",
+      "resource_type": "publication-other"
+    },
+    {
+      "identifier": "https://janpfander.github.io/llm_predictions_megastudy/amendment_preregistration.html",
+      "relation": "references",
+      "scheme": "url",
+      "resource_type": "publication-preprint"
+    },
+    {
+      "identifier": "https://github.com/dess-mannheim/silicon_sampling_benchmark",
+      "relation": "isCompiledBy",
+      "scheme": "url",
+      "resource_type": "software"
+    }
+  ],
+  "notes": "Team team_6. Disclosure class A."
+}
