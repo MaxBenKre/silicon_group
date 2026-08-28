@@ -52,14 +52,14 @@
 ## I · Data inputs, blinding, and competing interests
 - **I.1 Competing interests ★** — N/A.
 - **I.2 External human data †** — N/A; no external human dataset is used for fine-tuning, retrieval, in-context examples, calibration, or post-processing.
-- **I.3 Blinding attestation ★** — The signed attestation is available in declaration.pdf in the source code repository. No team member accessed, solicited, or was shown human outcome data from this study, including pilots, before the prediction lock.
+- **I.3 Blinding attestation ★** — The signed blinding attestation is included in the primary submission repository and will also be supplied directly with the submission email. No team member accessed, solicited, or was shown any human outcome data from this study, including pilots, before the prediction lock.
 - **I.4 Contamination note †** — There is no known exposure or contamination. Qwen does not publish a precise training-data cutoff for this checkpoint. Qwen/Qwen3.6-27B was publicly released on 2026-04-22, while the benchmark condition, questionnaire, and survey materials were first released on 2026-07-21; the released checkpoint therefore predates the public benchmark materials.
 
 ## J · Internal selection procedure
 - **J.1 Design-space search †** — Multiple local single-model direct-forecast runs were produced during development. Qwen/Qwen3.6-27B was selected as the latest dense Qwen production run for this Tier 2 entry. Human benchmark outcomes were unavailable, so no pipeline or model was selected against benchmark performance.
 
 ## K · Reproducibility & frozen artifacts
-- **K.1 Code & materials** — https://github.com/dess-mannheim/silicon_sampling_benchmark; relevant files include the group prompt builder, questionnaire and condition inputs, launcher, JSON parser, outcome construction, fallback completion code, and the source 27B prediction files. This deposit contains predictions/team_6_T2_secondary-3_v1_cells_main.csv and predictions/team_6_T2_secondary-3_v1_cells_moderator.csv. DOI: [TBD before submission].
+- **K.1 Code & materials** — https://github.com/dess-mannheim/silicon_sampling_benchmark; relevant files include the group prompt builder, questionnaire and condition inputs, launcher, JSON parser, outcome construction, fallback completion code, and the source 27B prediction files. This deposit contains predictions/team_6_T2_secondary-3_v1_cells_main.csv and predictions/team_6_T2_secondary-3_v1_cells_moderator.csv. The code DOI can be found in metadata.json after the Zenodo upload.
 - **K.2 Raw output logs †** — The complete unprocessed Qwen/Qwen3.6-27B run-6501 record and its SHA-256 checksum are uploaded to https://zenodo.org/records/22124448 with DOI: 10.5281/zenodo.22124447.
 - **K.3 Computational resources** — 459 local model completions and no API calls or API cost. Run 6501 used two NVIDIA H100 PCIe GPUs. The battery completed in 27 m 54 s; end-to-end time from launch through writing all artifacts was 30 m 35 s on 2026-07-23. The logs retain aggregate throughput but not exact total token counts.
 
